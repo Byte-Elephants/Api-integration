@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import "./Login.css";
-import Table from "../component/Table";
-
+import CountryTable from "../component/CountryTable";
 
 const Login = () => {
   const [name, setName] = useState("");
@@ -12,21 +11,20 @@ const Login = () => {
     e.preventDefault();
     console.log("Username:", name, "Password:", password);
     try {
-      const response = await fetch(`https://distribution.byteelephants.com/api/auth/login/logout-all-device-web?username=${name}&password=${password}&deviceInfo=883487`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ name, password }),
-      });
+      const response = await fetch(
+        `https://distribution.byteelephants.com/api/auth/login/logout-all-device-web?username=${name}&password=${password}&deviceInfo=883487`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ name, password }),
+        }
+      );
       const data = await response.json();
-      console.log("Login Response Data:", data);
       const token = data?.externalToken;
-      console.log("Token:", token);
-
       if (token) {
         localStorage.setItem("token", token);
-        console.log("Token saved to local storage");
         fetchCountryData(token);
       } else {
         console.error("Token not found in the response!");
@@ -37,25 +35,27 @@ const Login = () => {
   };
 
   const fetchCountryData = async () => {
-    console.log("Fetching country data...");
     try {
       const token = localStorage.getItem("token");
-      console.log("Token from local storage:", token);
       if (!token) {
         console.error("Token not found in local storage");
         return;
       }
-      const response = await fetch("https://distribution.byteelephants.com/api/distributiondevelop/v1/country", {
-        method: "GET",
-        headers: {
-          "Authorization":  token,
-          "Content-Type": "application/json",
-        },
-      });
+      const response = await fetch(
+        "https://distribution.byteelephants.com/api/distributiondevelop/v1/country",
+        {
+          method: "GET",
+          headers: {
+            Authorization: token,
+            "Content-Type": "application/json",
+          },
+        }
+      );
       if (response.ok) {
         const data = await response.json();
-        setCountryData(data); 
-        console.log("Country Data:", data);
+        const content = data?.data?.content || [];
+        console.log("Country data:", content);
+        setCountryData(content);
       } else {
         const errorMessage = await response.text();
         console.error("Error fetching countretchiny data:", errorMessage);
@@ -95,13 +95,7 @@ const Login = () => {
         </button>
       </form>
 
-
-
-
-    {/* <Table /> */}
-
-
-
+      {countryData && <CountryTable data={countryData} />}
     </div>
   );
 };
