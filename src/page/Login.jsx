@@ -58,10 +58,9 @@ const Login = () => {
         setCountryData(content);
       } else {
         const errorMessage = await response.text();
-        console.error("Error fetching countretchiny data:", errorMessage);
+        console.error("Error fetching country data:", errorMessage);
       }
     } catch (error) {
-      setError("Error fetching country data");
       console.error("Error fetching country data:", error);
     }
   };
@@ -95,7 +94,11 @@ const Login = () => {
         </button>
       </form>
 
-      {countryData && <CountryTable data={countryData} />}
+      {countryData && (
+        <div className="table-container">
+          <CountryTable data={countryData} />
+        </div>
+      )}
     </div>
   );
 };
