@@ -1,11 +1,11 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "./Login.css";
-import CountryTable from "../component/CountryTable";
 
 const Login = () => {
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
-  const [countryData, setCountryData] = useState(null);
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -25,7 +25,7 @@ const Login = () => {
       const token = data?.externalToken;
       if (token) {
         localStorage.setItem("token", token);
-        fetchCountryData(token);
+        fetchCountryData();
       } else {
         console.error("Token not found in the response!");
       }
@@ -35,8 +35,8 @@ const Login = () => {
   };
 
   const fetchCountryData = async () => {
+    const token = localStorage.getItem("token");
     try {
-      const token = localStorage.getItem("token");
       if (!token) {
         console.error("Token not found in local storage");
         return;
@@ -55,7 +55,9 @@ const Login = () => {
         const data = await response.json();
         const content = data?.data?.content || [];
         console.log("Country data:", content);
-        setCountryData(content);
+
+        // Navigate to /table route with countryData
+        navigate("/productform", { state: { countryData: content } });
       } else {
         const errorMessage = await response.text();
         console.error("Error fetching country data:", errorMessage);
@@ -93,12 +95,6 @@ const Login = () => {
           Login
         </button>
       </form>
-
-      {countryData && (
-        <div className="table-container">
-          <CountryTable data={countryData} />
-        </div>
-      )}
     </div>
   );
 };
