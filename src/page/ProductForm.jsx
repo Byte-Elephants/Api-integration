@@ -42,17 +42,15 @@ const darkTheme = createTheme({
 const ProductForm = () => {
   const [tabIndex, setTabIndex] = useState(0);
   const [formInput, setFormInput] = useState({
-    productType: [],
+    productType: "", // Change this to store selected value
     productTypeName: "",
-    productHsnCode: [],
+    productHsnCode: "",
     productCategory: "",
     productSubCategory: "",
     productSubGroup: "",
   });
-
-  const handleTabChange = (event, newValue) => {
-    setTabIndex(newValue);
-  };
+  const [productTypeOptions, setProductTypeOptions] = useState([]); // New state for options
+  const [hsnCodeOptions, setHsnCodeOptions] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -62,18 +60,10 @@ const ProductForm = () => {
         );
         const data = await response.json();
         if (data?.data?.productType) {
-          console.log("productType", data.data.productType);
-          setFormInput((prevInput) => ({
-            ...prevInput,
-            productType: data.data.productType,
-          }));
+          setProductTypeOptions(data.data.productType); // Store options separately
         }
         if (data?.data?.taxHsnCode) {
-          console.log("taxHsnCode", data?.data?.taxHsnCode);
-          setFormInput((prevInput) => ({
-            ...prevInput,
-            productHsnCode: data?.data?.taxHsnCode,
-          }));
+          setHsnCodeOptions(data.data.taxHsnCode); // You'll need to create this state
         }
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -82,6 +72,10 @@ const ProductForm = () => {
 
     fetchData();
   }, []);
+
+  const handleTabChange = (event, newValue) => {
+    setTabIndex(newValue);
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -201,22 +195,22 @@ const ProductForm = () => {
                 <FormControl fullWidth>
                   <InputLabel style={{ color: "#ffffff" }}>Type</InputLabel>
                   <Select
-                    value={formInput.productType.productTypeId || ""}
+                    value={formInput.productType}
                     onChange={(e) =>
-                      setFormInput({
-                        ...formInput,
+                      setFormInput((prev) => ({
+                        ...prev,
                         productType: e.target.value,
-                      })
+                      }))
                     }
+                    defaultValue=""
                     required>
-                    {formInput?.productType?.length > 0 &&
-                      formInput?.productType?.map((product) => (
-                        <MenuItem
-                          key={product.productTypeId}
-                          value={product.typeName}>
-                          {product.typeName}
-                        </MenuItem>
-                      ))}
+                    {productTypeOptions.map((product) => (
+                      <MenuItem
+                        key={product.productTypeId}
+                        value={product.productTypeId}>
+                        {product.typeName}
+                      </MenuItem>
+                    ))}
                   </Select>
                 </FormControl>
               </Grid>
@@ -255,24 +249,24 @@ const ProductForm = () => {
                 </FormControl>
               </Grid>
 
+              {/* HSN CODE */}
               <Grid item xs={12} sm={6}>
                 <FormControl fullWidth>
-                  <InputLabel style={{ color: "#ffffff" }}>Type</InputLabel>
+                  <InputLabel style={{ color: "#ffffff" }}>HSN Code</InputLabel>
                   <Select
-                    value={formInput.productHsnCode.taxId || ""}
+                    value={formInput.productHsnCode || ""} // Correct value mapping
                     onChange={(e) =>
-                      setFormInput({
-                        ...formInput,
-                        productHsnCode: e.target.value,
-                      })
+                      setFormInput((prev) => ({
+                        ...prev,
+                        productHsnCode: e.target.value, // Correctly update the selected HSN code
+                      }))
                     }
                     required>
-                    {formInput?.productHsnCode?.length > 0 &&
-                      formInput?.productHsnCode?.map((product) => (
-                        <MenuItem key={product.taxId} value={product.hsnCode}>
-                          {product.hsnCode}
-                        </MenuItem>
-                      ))}
+                    {hsnCodeOptions.map((hsn) => (
+                      <MenuItem key={hsn.taxId} value={hsn.hsnCode}>
+                        {hsn.hsnCode}
+                      </MenuItem>
+                    ))}
                   </Select>
                 </FormControl>
               </Grid>
