@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Button,
@@ -15,82 +15,176 @@ import {
   Typography,
   createTheme,
   ThemeProvider,
+  Radio,
+  RadioGroup,
 } from "@mui/material";
 
 const darkTheme = createTheme({
   palette: {
     mode: "dark",
     primary: {
-      main: "#90caf9", // Light blue
+      main: "#90caf9",
     },
     secondary: {
-      main: "#f48fb1", // Pink
+      main: "#f48fb1",
     },
     background: {
-      default: "#121212", // Dark background
-      paper: "#1e1e1e", // Slightly lighter background for components
+      default: "#121212",
+      paper: "#1e1e1e",
     },
     text: {
-      primary: "#ffffff", // White text
-      secondary: "#bdbdbd", // Grey text
+      primary: "#ffffff",
+      secondary: "#bdbdbd",
     },
   },
 });
 
 const ProductForm = () => {
-  const [tabIndex, setTabIndex] = React.useState(0);
+  const [tabIndex, setTabIndex] = useState(0);
+  const [formInput, setFormInput] = useState({
+    productType: [],
+    productTypeName: "",
+    productHsnCode: [],
+    productCategory: "",
+    productSubCategory: "",
+    productSubGroup: "",
+  });
+
   const handleTabChange = (event, newValue) => {
     setTabIndex(newValue);
   };
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch(
+          "/v1/product/get-product-type-name-hsn-code"
+        );
+        const data = await response.json();
+        if (data?.data?.productType) {
+          console.log("productType", data.data.productType);
+          setFormInput((prevInput) => ({
+            ...prevInput,
+            productType: data.data.productType,
+          }));
+        }
+        if (data?.data?.taxHsnCode) {
+          console.log("taxHsnCode", data?.data?.taxHsnCode);
+          setFormInput((prevInput) => ({
+            ...prevInput,
+            productHsnCode: data?.data?.taxHsnCode,
+          }));
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch("asdfasdf");
+      } catch {}
+    };
+  });
+
   return (
     <ThemeProvider theme={darkTheme}>
-      <Box sx={{ p: 3, bgcolor: "background.default", color: "text.primary" }}>
-        {/* Page Header */}
-        <Typography variant="h5" gutterBottom>
+      <Box
+        sx={{
+          p: 3,
+          bgcolor: "background.default",
+          color: "text.primary",
+          mx: "auto",
+          maxHeight: "100vh",
+          borderRadius: 2,
+        }}>
+        <Typography
+          variant="h5"
+          gutterBottom
+          sx={{ wordWrap: "break-word", maxWidth: "100%" }}>
           Product Name
         </Typography>
-        <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+        <Typography
+          variant="subtitle2"
+          color="text.secondary"
+          gutterBottom
+          sx={{ wordWrap: "break-word", maxWidth: "100%" }}>
           New
         </Typography>
+        <Grid item xs={12} sm={6}>
+          <TextField id="standard-basic" label="Name" variant="standard" />
+          <TextField id="standard-basic" label="email" variant="standard" />
 
-        {/* Type Selection */}
-        <Box sx={{ mb: 2 }}>
+          <TextField
+            id="standard-basic"
+            label="Mobile No."
+            variant="standard"
+          />
+        </Grid>
+        <Box sx={{ mb: 3 }}>
+          <FormControl component="fieldset">
+            <RadioGroup row>
+              <FormControlLabel
+                value="product"
+                control={<Radio color="primary" />}
+                label="Product"
+                sx={{ mr: 2 }}
+              />
+              <FormControlLabel
+                value="service"
+                control={<Radio color="primary" />}
+                label="Service"
+              />
+            </RadioGroup>
+          </FormControl>
+        </Box>
+
+        <Box sx={{ mb: 3 }}>
           <FormControlLabel
             control={<Checkbox color="primary" />}
-            label="Product"
+            label="Salable"
             sx={{ mr: 2 }}
           />
-          <FormControlLabel control={<Checkbox color="primary" />} label="Service" />
+          <FormControlLabel
+            control={<Checkbox color="primary" />}
+            label="Purchase"
+            sx={{ mr: 2 }}
+          />
+          <FormControlLabel
+            control={<Checkbox color="primary" />}
+            label="Production"
+            sx={{ mr: 2 }}
+          />
+          <FormControlLabel
+            control={<Checkbox color="primary" />}
+            label="Consumable"
+            sx={{ mr: 2 }}
+          />
+          <FormControlLabel
+            control={<Checkbox color="primary" />}
+            label="Asset"
+          />
         </Box>
 
-        {/* Checkbox Options */}
-        <Box sx={{ mb: 3 }}>
-          <FormControlLabel control={<Checkbox color="primary" />} label="Salable" />
-          <FormControlLabel control={<Checkbox color="primary" />} label="Purchase" />
-          <FormControlLabel control={<Checkbox color="primary" />} label="Production" />
-          <FormControlLabel control={<Checkbox color="primary" />} label="Consumable" />
-          <FormControlLabel control={<Checkbox color="primary" />} label="Asset" />
-        </Box>
-
-        {/* Tabs */}
         <Tabs
           value={tabIndex}
           onChange={handleTabChange}
           textColor="primary"
           indicatorColor="primary"
-        >
+          sx={{ mb: 3 }}>
           <Tab label="Product Information" />
           <Tab label="UOM and Conversion Config" />
           <Tab label="Configuration" />
           <Tab label="Vendor Configuration" />
         </Tabs>
 
-        {/* Form Content */}
         <Box sx={{ mt: 3 }}>
           {tabIndex === 0 && (
             <Grid container spacing={2}>
-              {/* First Row */}
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
@@ -100,17 +194,33 @@ const ProductForm = () => {
                   InputLabelProps={{ style: { color: "#ffffff" } }}
                 />
               </Grid>
+
+              {/* Product Type   */}
+
               <Grid item xs={12} sm={6}>
                 <FormControl fullWidth>
                   <InputLabel style={{ color: "#ffffff" }}>Type</InputLabel>
-                  <Select defaultValue="" required>
-                    <MenuItem value="type1">Type 1</MenuItem>
-                    <MenuItem value="type2">Type 2</MenuItem>
+                  <Select
+                    value={formInput.productType.productTypeId || ""}
+                    onChange={(e) =>
+                      setFormInput({
+                        ...formInput,
+                        productType: e.target.value,
+                      })
+                    }
+                    required>
+                    {formInput?.productType?.length > 0 &&
+                      formInput?.productType?.map((product) => (
+                        <MenuItem
+                          key={product.productTypeId}
+                          value={product.typeName}>
+                          {product.typeName}
+                        </MenuItem>
+                      ))}
                   </Select>
                 </FormControl>
               </Grid>
 
-              {/* Second Row */}
               <Grid item xs={12} sm={6}>
                 <FormControl fullWidth>
                   <InputLabel style={{ color: "#ffffff" }}>Category</InputLabel>
@@ -120,9 +230,12 @@ const ProductForm = () => {
                   </Select>
                 </FormControl>
               </Grid>
+
               <Grid item xs={12} sm={6}>
                 <FormControl fullWidth>
-                  <InputLabel style={{ color: "#ffffff" }}>Sub-Category</InputLabel>
+                  <InputLabel style={{ color: "#ffffff" }}>
+                    Sub-Category
+                  </InputLabel>
                   <Select defaultValue="">
                     <MenuItem value="sub-category1">Sub-Category 1</MenuItem>
                     <MenuItem value="sub-category2">Sub-Category 2</MenuItem>
@@ -130,7 +243,40 @@ const ProductForm = () => {
                 </FormControl>
               </Grid>
 
-              {/* Third Row */}
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth>
+                  <InputLabel style={{ color: "#ffffff" }}>
+                    Sub-Group
+                  </InputLabel>
+                  <Select defaultValue="">
+                    <MenuItem value="sub-Group1">Sub-Group 1</MenuItem>
+                    <MenuItem value="sub-Group2">Sub-Group 2</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth>
+                  <InputLabel style={{ color: "#ffffff" }}>Type</InputLabel>
+                  <Select
+                    value={formInput.productHsnCode.taxId || ""}
+                    onChange={(e) =>
+                      setFormInput({
+                        ...formInput,
+                        productHsnCode: e.target.value,
+                      })
+                    }
+                    required>
+                    {formInput?.productHsnCode?.length > 0 &&
+                      formInput?.productHsnCode?.map((product) => (
+                        <MenuItem key={product.taxId} value={product.hsnCode}>
+                          {product.hsnCode}
+                        </MenuItem>
+                      ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
@@ -141,17 +287,7 @@ const ProductForm = () => {
                   InputLabelProps={{ style: { color: "#ffffff" } }}
                 />
               </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="HSN Code (Tax)"
-                  variant="outlined"
-                  required
-                  InputLabelProps={{ style: { color: "#ffffff" } }}
-                />
-              </Grid>
 
-              {/* Fourth Row */}
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
@@ -161,6 +297,17 @@ const ProductForm = () => {
                   InputLabelProps={{ style: { color: "#ffffff" } }}
                 />
               </Grid>
+
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Moisture level"
+                  variant="outlined"
+                  type="number"
+                  InputLabelProps={{ style: { color: "#ffffff" } }}
+                />
+              </Grid>
+
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
@@ -171,7 +318,6 @@ const ProductForm = () => {
                 />
               </Grid>
 
-              {/* Description */}
               <Grid item xs={12}>
                 <TextField
                   fullWidth
@@ -186,8 +332,7 @@ const ProductForm = () => {
           )}
         </Box>
 
-        {/* Action Buttons */}
-        <Box sx={{ mt: 4, display: "flex", justifyContent: "flex-end" }}>
+        <Box sx={{ mt: 2, display: "flex", justifyContent: "flex-end" }}>
           <Button variant="contained" color="primary">
             Next
           </Button>
