@@ -42,36 +42,57 @@ const darkTheme = createTheme({
 const ProductForm = () => {
   const [tabIndex, setTabIndex] = useState(0);
   const [formInput, setFormInput] = useState({
-    productType: "", // Change this to store selected value
+    productType: "", 
     productTypeName: "",
     productHsnCode: "",
     productCategory: "",
     productSubCategory: "",
     productSubGroup: "",
   });
-  const [productTypeOptions, setProductTypeOptions] = useState([]); // New state for options
+  const [productTypeOptions, setProductTypeOptions] = useState([]);
   const [hsnCodeOptions, setHsnCodeOptions] = useState([]);
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchProductType = async () => {
       try {
         const response = await fetch(
           "/v1/product/get-product-type-name-hsn-code"
         );
         const data = await response.json();
         if (data?.data?.productType) {
-          setProductTypeOptions(data.data.productType); // Store options separately
+          setProductTypeOptions(data.data.productType); 
+          
         }
         if (data?.data?.taxHsnCode) {
-          setHsnCodeOptions(data.data.taxHsnCode); // You'll need to create this state
+          setHsnCodeOptions(data.data.taxHsnCode); 
         }
       } catch (error) {
         console.error("Error fetching data:", error);
       }
     };
 
-    fetchData();
+    fetchProductType();
   }, []);
+
+  const fetchtCategoryByProductType = async () => {
+    try {
+      const response = await fetch(
+        "/v1/product/get-product-category-by-product-type"
+      );
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
+
+  const fetchSubCategoryByCategory = async ( productTypeId) => {
+    try {
+      const response = await fetch(
+        "/v1/product/get-product-sub-category-by-category"
+      );
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
 
   const handleTabChange = (event, newValue) => {
     setTabIndex(newValue);
@@ -207,7 +228,9 @@ const ProductForm = () => {
                     {productTypeOptions.map((product) => (
                       <MenuItem
                         key={product.productTypeId}
-                        value={product.productTypeId}>
+                        value={product.productTypeId}
+                        onClick={fetchtCategoryByProductType(product.productTypeId)}>
+                        
                         {product.typeName}
                       </MenuItem>
                     ))}
@@ -215,6 +238,8 @@ const ProductForm = () => {
                 </FormControl>
               </Grid>
 
+
+              {/* Category by product Id  */}
               <Grid item xs={12} sm={6}>
                 <FormControl fullWidth>
                   <InputLabel style={{ color: "#ffffff" }}>Category</InputLabel>
@@ -254,11 +279,11 @@ const ProductForm = () => {
                 <FormControl fullWidth>
                   <InputLabel style={{ color: "#ffffff" }}>HSN Code</InputLabel>
                   <Select
-                    value={formInput.productHsnCode || ""} // Correct value mapping
+                    value={formInput.productHsnCode || ""} 
                     onChange={(e) =>
                       setFormInput((prev) => ({
                         ...prev,
-                        productHsnCode: e.target.value, // Correctly update the selected HSN code
+                        productHsnCode: e.target.value, 
                       }))
                     }
                     required>
