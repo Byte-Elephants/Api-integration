@@ -9,10 +9,9 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Username:", name, "Password:", password);
     try {
       const response = await fetch(
-        `https://distribution.byteelephants.com/api/auth/login/logout-all-device-web?username=${name}&password=${password}&deviceInfo=883487`,
+        `https://distributiondevelop.byteelephants.com/api/auth/login?username=${name}&password=${password}`,
         {
           method: "POST",
           headers: {
@@ -21,16 +20,23 @@ const Login = () => {
           body: JSON.stringify({ name, password }),
         }
       );
+
+      if (!response.ok) {
+        throw new Error("Invalid username or password");
+      }
+
       const data = await response.json();
       const token = data?.externalToken;
+
       if (token) {
         localStorage.setItem("token", token);
-        fetchCountryData();
+        // alert("Login successful! Redirecting...");
+        navigate("/productform"); // Redirect to ProductForm
       } else {
-        console.error("Token not found in the response!");
+        alert("Login failed! Token not found in response.");
       }
     } catch (error) {
-      console.error("Error during login:", error);
+      alert(error.message || "Error during login. Please try again.");
     }
   };
 
@@ -67,6 +73,7 @@ const Login = () => {
     }
   };
 
+
   return (
     <div className="login-container">
       <form className="login-form" onSubmit={handleSubmit}>
@@ -76,9 +83,10 @@ const Login = () => {
           <input
             type="text"
             id="name"
-            placeholder="Enter your name"
+            placeholder="Enter your username"
             value={name}
             onChange={(e) => setName(e.target.value)}
+            required
           />
         </div>
         <div className="form-group">
@@ -89,6 +97,7 @@ const Login = () => {
             placeholder="Enter your password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            required
           />
         </div>
         <button type="submit" className="login-button">

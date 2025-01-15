@@ -42,69 +42,206 @@ const darkTheme = createTheme({
 const ProductForm = () => {
   const [tabIndex, setTabIndex] = useState(0);
   const [formInput, setFormInput] = useState({
-    productType: "", 
-    productTypeName: "",
-    productHsnCode: "",
+    productType: "",
     productCategory: "",
     productSubCategory: "",
     productSubGroup: "",
+    productHsnCode: "",
   });
-  const [productTypeOptions, setProductTypeOptions] = useState([]);
-  const [hsnCodeOptions, setHsnCodeOptions] = useState([]);
+
+  const [options, setOptions] = useState({
+    productTypes: [],
+    categories: [],
+    subCategories: [],
+    subGroups: [],
+    hsnCodes: [],
+  });
 
   useEffect(() => {
-    const fetchProductType = async () => {
-      try {
-        const response = await fetch(
-          "/v1/product/get-product-type-name-hsn-code"
-        );
-        const data = await response.json();
-        if (data?.data?.productType) {
-          setProductTypeOptions(data.data.productType); 
-          
-        }
-        if (data?.data?.taxHsnCode) {
-          setHsnCodeOptions(data.data.taxHsnCode); 
-        }
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      }
-    };
-
-    fetchProductType();
+    fetchProductTypes();
   }, []);
+    const domain = "https://distributiondevelop.byteelephants.com";
 
-  const fetchtCategoryByProductType = async () => {
+
+  const fetchProductTypes = async () => {
+
     try {
+      const token = localStorage.getItem("token");
       const response = await fetch(
-        "/v1/product/get-product-category-by-product-type"
+        `${domain}/api/erpdevelop/v1/product/get-apis-for-add-form?productId=`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: token,
+            "Content-Type": "application/json",
+          },
+        }
       );
+      const data = await response.json();
+      console.log("Product data:", data);
+      if (data?.data?.productType) {
+        console.log("ProductType data:", data?.data?.productType);
+        setOptions((prev) => ({
+          ...prev,
+          productTypes: data.data.productType,
+        }));
+      }
     } catch (error) {
-      console.error("Error fetching data:", error);
+      console.error("Error fetching product types:", error);
     }
   };
 
-  const fetchSubCategoryByCategory = async ( productTypeId) => {
+  const fetchCategories = async (productTypeId) => {
+    const token = localStorage.getItem("token");
     try {
       const response = await fetch(
-        "/v1/product/get-product-sub-category-by-category"
+        "https://distributiondevelop.byteelephants.com/api/erpdevelop/v1/category/by-product-types",
+        {
+          method: "POST",
+          headers: {
+            Authorization: token,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            ids: [productTypeId],
+          }),
+        }
       );
+      const data = await response.json();
+      console.log("Category data:", data);
+      if (data?.data) {
+        console.log("CategoryType data:", data?.data);
+        setOptions((prev) => ({
+          ...prev,
+          categories: data.data,
+        }));
+        setFormInput((prev) => ({
+          ...prev,
+          productCategory: "",
+          productSubCategory: "",
+          productSubGroup: "",
+        }));
+        setOptions((prev) => ({
+          ...prev,
+          subCategories: [],
+          subGroups: [],
+        }));
+      }
     } catch (error) {
-      console.error("Error fetching data:", error);
+      console.error("Error fetching categories:", error);
+    }
+  };
+
+  const fetchSubCategories = async (categoryId) => {
+    const token = localStorage.getItem("token");
+    try {
+      const response = await fetch(
+        "https://distributiondevelop.byteelephants.com/api/erpdevelop/v1/sub-category/by-categories",
+        {
+          method: "POST",
+          headers: {
+            Authorization: token,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            ids: [categoryId],
+          }),
+        }
+      );
+      const data = await response.json();
+      console.log("SubCategory data:", data);
+      if (data?.data) {
+        console.log("SubCategoryType data:", data?.data);
+        setOptions((prev) => ({
+          ...prev,
+          subCategories: data.data,
+        }));
+        setFormInput((prev) => ({
+          ...prev,
+          productSubCategory: "",
+          productSubGroup: "",
+        }));
+        setOptions((prev) => ({
+          ...prev,
+          subGroups: [],
+        }));
+      }
+    } catch (error) {
+      console.error("Error fetching sub-categories:", error);
+    }
+  };
+
+  const fetchSubGroups = async (subCategoryId) => {
+    try {
+      const response = await fetch(
+        `/v1/product/get-product-sub-groups?subCategoryId=${subCategoryId}`
+      );
+      const data = await response.json();
+      if (data?.data?.subGroups) {
+        setOptions((prev) => ({
+          ...prev,
+          subGroups: data.data.subGroups,
+        }));
+        setFormInput((prev) => ({
+          ...prev,
+          productSubGroup: "",
+        }));
+      }
+    } catch (error) {
+      console.error("Error fetching sub-groups:", error);
+    }
+  };
+
+
+  const fetchHsnCodes = async (subCategoryId) => {
+    try {
+      const response = await fetch(
+        `/v1/product/get-product-sub-groups?subCategoryId=${subCategoryId}`
+      );
+      const data = await response.json();
+      if (data?.data?.subGroups) {
+        setOptions((prev) => ({
+          ...prev,
+          subGroups: data.data.subGroups,
+        }));
+        setFormInput((prev) => ({
+          ...prev,
+          productSubGroup: "",
+        }));
+      }
+    } catch (error) {
+      console.error("Error fetching sub-groups:", error);
+    }
+  };
+
+  const handleInputChange = async (e) => {
+    const { name, value } = e.target;
+    setFormInput((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+
+    switch (name) {
+      case "productType":
+        await fetchCategories(value);
+        break;
+      case "productCategory":
+        await fetchSubCategories(value);
+        break;
+      case "productSubCategory":
+        await fetchSubGroups(value);
+        break;
+        case "productHsnCode":
+        await fetchHsnCodes(value);
+        break;
+      default:
+        break;
     }
   };
 
   const handleTabChange = (event, newValue) => {
     setTabIndex(newValue);
   };
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch("asdfasdf");
-      } catch {}
-    };
-  });
 
   return (
     <ThemeProvider theme={darkTheme}>
@@ -200,6 +337,7 @@ const ProductForm = () => {
         <Box sx={{ mt: 3 }}>
           {tabIndex === 0 && (
             <Grid container spacing={2}>
+              {/* product short name */}
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
@@ -210,84 +348,96 @@ const ProductForm = () => {
                 />
               </Grid>
 
-              {/* Product Type   */}
-
+              {/* Product Type Dropdown */}
               <Grid item xs={12} sm={6}>
                 <FormControl fullWidth>
                   <InputLabel style={{ color: "#ffffff" }}>Type</InputLabel>
                   <Select
+                    name="productType"
                     value={formInput.productType}
-                    onChange={(e) =>
-                      setFormInput((prev) => ({
-                        ...prev,
-                        productType: e.target.value,
-                      }))
-                    }
-                    defaultValue=""
+                    onChange={handleInputChange}
                     required>
-                    {productTypeOptions.map((product) => (
-                      <MenuItem
-                        key={product.productTypeId}
-                        value={product.productTypeId}
-                        onClick={fetchtCategoryByProductType(product.productTypeId)}>
-                        
-                        {product.typeName}
+                    {options.productTypes.map((type) => (
+                      <MenuItem key={type.id} value={type.id}>
+                        {type.name}
                       </MenuItem>
                     ))}
                   </Select>
                 </FormControl>
               </Grid>
 
-
-              {/* Category by product Id  */}
+              {/* Category Dropdown */}
               <Grid item xs={12} sm={6}>
                 <FormControl fullWidth>
                   <InputLabel style={{ color: "#ffffff" }}>Category</InputLabel>
-                  <Select defaultValue="">
-                    <MenuItem value="category1">Category 1</MenuItem>
-                    <MenuItem value="category2">Category 2</MenuItem>
+                  <Select
+                    name="productCategory"
+                    value={formInput.productCategory}
+                    onChange={handleInputChange}
+                    disabled={!formInput.productType}>
+                    {options.categories.map((category) => (
+                      <MenuItem key={category.id} value={category.id}>
+                        {category.name}
+                      </MenuItem>
+                    ))}
                   </Select>
                 </FormControl>
               </Grid>
 
+              {/* Sub-Category Dropdown */}
               <Grid item xs={12} sm={6}>
                 <FormControl fullWidth>
                   <InputLabel style={{ color: "#ffffff" }}>
                     Sub-Category
                   </InputLabel>
-                  <Select defaultValue="">
-                    <MenuItem value="sub-category1">Sub-Category 1</MenuItem>
-                    <MenuItem value="sub-category2">Sub-Category 2</MenuItem>
+                  <Select
+                    name="productSubCategory"
+                    value={formInput.productSubCategory}
+                    onChange={handleInputChange}
+                    disabled={!formInput.productCategory}>
+                    {options.subCategories.map((subCategory) => (
+                      <MenuItem
+                        key={subCategory.id}
+                        value={subCategory.id}>
+                        {subCategory?.shortName}
+                      </MenuItem>
+                    ))}
                   </Select>
                 </FormControl>
               </Grid>
 
+              {/* Sub-Group Dropdown */}
               <Grid item xs={12} sm={6}>
                 <FormControl fullWidth>
                   <InputLabel style={{ color: "#ffffff" }}>
                     Sub-Group
                   </InputLabel>
-                  <Select defaultValue="">
-                    <MenuItem value="sub-Group1">Sub-Group 1</MenuItem>
-                    <MenuItem value="sub-Group2">Sub-Group 2</MenuItem>
+                  <Select
+                    name="productSubGroup"
+                    value={formInput.productSubGroup}
+                    onChange={handleInputChange}
+                    disabled={!formInput.productSubCategory}>
+                    {options.subGroups.map((subGroup) => (
+                      <MenuItem
+                        key={subGroup.subGroupId}
+                        value={subGroup.subGroupId}>
+                        {subGroup.subGroupName}
+                      </MenuItem>
+                    ))}
                   </Select>
                 </FormControl>
               </Grid>
 
-              {/* HSN CODE */}
+              {/* HSN Code Dropdown */}
               <Grid item xs={12} sm={6}>
                 <FormControl fullWidth>
                   <InputLabel style={{ color: "#ffffff" }}>HSN Code</InputLabel>
                   <Select
-                    value={formInput.productHsnCode || ""} 
-                    onChange={(e) =>
-                      setFormInput((prev) => ({
-                        ...prev,
-                        productHsnCode: e.target.value, 
-                      }))
-                    }
+                    name="productHsnCode"
+                    value={formInput.productHsnCode}
+                    onChange={handleInputChange}
                     required>
-                    {hsnCodeOptions.map((hsn) => (
+                    {options.hsnCodes.map((hsn) => (
                       <MenuItem key={hsn.taxId} value={hsn.hsnCode}>
                         {hsn.hsnCode}
                       </MenuItem>
